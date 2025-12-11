@@ -151,11 +151,26 @@ router.put('/:id', (req, res, next) => {
 
     // Handle new image upload with Cloudinary
     if (req.file) {
+      console.log('File details for update:', {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        bufferLength: req.file.buffer ? req.file.buffer.length : 'No buffer'
+      });
+      
       console.log('Uploading new image to Cloudinary...');
       const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      const cloudinaryResult = await uploadToCloudinary(req.file.buffer, filename);
-      updateData.imageUrl = cloudinaryResult.secure_url;
-      console.log('New image uploaded:', cloudinaryResult.secure_url);
+      
+      try {
+        const cloudinaryResult = await uploadToCloudinary(req.file.buffer, filename);
+        updateData.imageUrl = cloudinaryResult.secure_url;
+        console.log('New image uploaded successfully:', cloudinaryResult.secure_url);
+      } catch (uploadError) {
+        console.error('Cloudinary upload failed:', uploadError.message);
+        return res.status(500).json({ error: 'Image upload failed: ' + uploadError.message });
+      }
+    } else {
+      console.log('No new image provided - keeping existing image');
     }
 
     const project = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
@@ -164,8 +179,13 @@ router.put('/:id', (req, res, next) => {
       return res.status(404).json({ error: 'Project not found' });
     }
     
-    console.log('Project updated successfully:', JSON.stringify(project, null, 2));
-    res.json(project);
+    console.log('Project updated successfully');
+    console.log('Updated imageUrl:', project.imageUrl);
+    res.json({
+      success: true,
+      message: 'Project updated successfully',
+      project: project
+    });
   } catch (error) {
     console.error('Error updating project:', error.message);
     console.error('Error stack:', error.stack);
