@@ -6,10 +6,22 @@ const { upload } = require('../middleware/cloudinaryUpload');
 // GET all projects
 router.get('/', async (req, res) => {
   try {
+    console.log('Fetching projects from database...');
     const projects = await Project.find().sort({ createdAt: -1 });
-    res.json(projects);
+    console.log('Projects found:', projects.length);
+    res.json({
+      success: true,
+      count: projects.length,
+      projects: projects
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('GET projects error:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      success: false,
+      error: error.message,
+      details: 'Failed to fetch projects'
+    });
   }
 });
 
