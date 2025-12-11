@@ -32,11 +32,11 @@ router.post('/', upload.single('image'), async (req, res) => {
     console.log('Request body:', JSON.stringify(req.body, null, 2));
     console.log('File uploaded:', !!req.file);
     if (req.file) {
-      console.log('File details:', {
+      console.log('File details:', JSON.stringify({
         filename: req.file.filename,
         path: req.file.path,
         size: req.file.size
-      });
+      }, null, 2));
     }
 
     const { title, projectName, category, style, layout, location, pricing, bhk, scope, propertyType, size, priceMin, priceMax, status } = req.body;
@@ -46,7 +46,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'Image is required' });
     }
 
-    console.log('Creating project with data:', {
+    console.log('Creating project with data:', JSON.stringify({
       title,
       projectName,
       category,
@@ -62,7 +62,7 @@ router.post('/', upload.single('image'), async (req, res) => {
       priceMin: Number(priceMin),
       priceMax: Number(priceMax),
       imageUrl: req.file.path
-    });
+    }, null, 2));
 
     const project = new Project({
       title,
@@ -92,7 +92,11 @@ router.post('/', upload.single('image'), async (req, res) => {
     });
   } catch (error) {
     console.error('Project creation error:', error.message);
-    console.error('Error details:', JSON.stringify(error, null, 2));
+    console.error('Error name:', error.name);
+    console.error('Error stack:', error.stack);
+    if (error.errors) {
+      console.error('Validation errors:', JSON.stringify(error.errors, null, 2));
+    }
     res.status(500).json({ 
       success: false,
       error: error.message || 'Failed to create project'
@@ -141,7 +145,10 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     res.json(project);
   } catch (error) {
     console.error('Error updating project:', error.message);
-    console.error('Error details:', JSON.stringify(error, null, 2));
+    console.error('Error stack:', error.stack);
+    if (error.errors) {
+      console.error('Validation errors:', JSON.stringify(error.errors, null, 2));
+    }
     res.status(500).json({ error: error.message });
   }
 });
