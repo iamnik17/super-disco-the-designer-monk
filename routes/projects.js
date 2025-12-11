@@ -117,7 +117,14 @@ router.post('/', (req, res, next) => {
 });
 
 // PUT update project
-router.put('/:id', upload.single('image'), async (req, res) => {
+router.put('/:id', (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      return handleUploadError(err, req, res, next);
+    }
+    next();
+  });
+}, preCompressImage, async (req, res) => {
   console.log('PUT route hit for ID:', req.params.id);
   console.log('Has file:', !!req.file);
   console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -144,7 +151,11 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 
     // Handle new image upload with Cloudinary
     if (req.file) {
-      updateData.imageUrl = req.file.path;
+      console.log('Uploading new image to Cloudinary...');
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const cloudinaryResult = await uploadToCloudinary(req.file.buffer, filename);
+      updateData.imageUrl = cloudinaryResult.secure_url;
+      console.log('New image uploaded:', cloudinaryResult.secure_url);
     }
 
     const project = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
