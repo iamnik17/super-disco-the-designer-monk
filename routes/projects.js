@@ -28,11 +28,41 @@ router.get('/', async (req, res) => {
 // POST create project with Cloudinary upload
 router.post('/', upload.single('image'), async (req, res) => {
   try {
+    console.log('POST /api/projects called');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('File uploaded:', !!req.file);
+    if (req.file) {
+      console.log('File details:', {
+        filename: req.file.filename,
+        path: req.file.path,
+        size: req.file.size
+      });
+    }
+
     const { title, projectName, category, style, layout, location, pricing, bhk, scope, propertyType, size, priceMin, priceMax, status } = req.body;
 
     if (!req.file) {
+      console.log('No file uploaded - returning error');
       return res.status(400).json({ error: 'Image is required' });
     }
+
+    console.log('Creating project with data:', {
+      title,
+      projectName,
+      category,
+      style,
+      layout,
+      location,
+      pricing,
+      bhk,
+      scope,
+      propertyType,
+      size,
+      status: status || 'delivered',
+      priceMin: Number(priceMin),
+      priceMax: Number(priceMax),
+      imageUrl: req.file.path
+    });
 
     const project = new Project({
       title,
@@ -52,7 +82,9 @@ router.post('/', upload.single('image'), async (req, res) => {
       imageUrl: req.file.path
     });
 
+    console.log('Saving project to database...');
     await project.save();
+    console.log('Project saved successfully');
     res.status(201).json({
       success: true,
       message: 'Project created successfully',
