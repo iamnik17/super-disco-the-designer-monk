@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
 const { upload, handleUploadError } = require('../middleware/cloudinaryUpload');
+const { preCompressImage } = require('../middleware/preCompress');
 
 // GET all projects
 router.get('/', async (req, res) => {
@@ -33,7 +34,7 @@ router.post('/', (req, res, next) => {
     }
     next();
   });
-}, async (req, res) => {
+}, preCompressImage, async (req, res) => {
   try {
     console.log('POST /api/projects called');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
