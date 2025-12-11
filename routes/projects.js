@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
-const { upload, handleUploadError } = require('../middleware/cloudinaryUpload');
+const { upload, handleUploadError, uploadToCloudinary } = require('../middleware/cloudinaryUpload');
 const { preCompressImage } = require('../middleware/preCompress');
 
 // GET all projects
@@ -54,6 +54,10 @@ router.post('/', (req, res, next) => {
       return res.status(400).json({ error: 'Image is required' });
     }
 
+    // Upload compressed image to Cloudinary
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const cloudinaryResult = await uploadToCloudinary(req.file.buffer, filename);
+
     console.log('Creating project with data:', JSON.stringify({
       title,
       projectName,
@@ -69,7 +73,7 @@ router.post('/', (req, res, next) => {
       status: status || 'delivered',
       priceMin: Number(priceMin),
       priceMax: Number(priceMax),
-      imageUrl: req.file.path
+      imageUrl: cloudinaryResult.secure_url
     }, null, 2));
 
     const project = new Project({
@@ -87,7 +91,7 @@ router.post('/', (req, res, next) => {
       status: status || 'delivered',
       priceMin: Number(priceMin),
       priceMax: Number(priceMax),
-      imageUrl: req.file.path
+      imageUrl: cloudinaryResult.secure_url
     });
 
     console.log('Saving project to database...');

@@ -9,21 +9,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Configure Cloudinary storage
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'designer-monk',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [
-      { width: 1920, height: 1080, crop: 'limit' },
-      { quality: 'auto:best' }, // Better compression
-      { fetch_format: 'auto' }  // Auto format selection
-    ],
-    resource_type: 'image',
-    chunk_size: 6000000 // 6MB chunks for large files
-  }
-});
+// Use memory storage for pre-compression
+const storage = multer.memoryStorage();
 
 const upload = multer({ 
   storage: storage,
@@ -88,4 +75,30 @@ const handleUploadError = (err, req, res, next) => {
   });
 };
 
-module.exports = { upload, cloudinary, handleUploadError };
+// Manual Cloudinary upload after compression
+const uploadToCloudinary = async (buffer, filename) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.upload_stream(
+      {
+        folder: 'designer-monk',
+        public_id: filename,
+        transformation: [
+          { width: 1920, height: 1080, crop: 'limit' },
+          { quality: 'auto:best' },
+          { fetch_format: 'auto' }
+        ]
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          reject(error);
+        } else {
+          console.log('Cloudinary upload success:', result.secure_url);
+          resolve(result);
+        }
+      }
+    ).end(buffer);
+  });
+};
+
+module.exports = { upload, cloudinary, handleUploadError, uploadToCloudinary };
