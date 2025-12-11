@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
-const { upload } = require('../middleware/cloudinaryUpload');
+const { upload, handleUploadError } = require('../middleware/cloudinaryUpload');
 
 // GET all projects
 router.get('/', async (req, res) => {
@@ -26,7 +26,14 @@ router.get('/', async (req, res) => {
 });
 
 // POST create project with Cloudinary upload
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      return handleUploadError(err, req, res, next);
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     console.log('POST /api/projects called');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
