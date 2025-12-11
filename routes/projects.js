@@ -47,7 +47,8 @@ router.post('/', upload.single('image'), async (req, res) => {
       project: project
     });
   } catch (error) {
-    console.error('Project creation error:', error);
+    console.error('Project creation error:', error.message);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     res.status(500).json({ 
       success: false,
       error: error.message || 'Failed to create project'
@@ -59,6 +60,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 router.put('/:id', upload.single('image'), async (req, res) => {
   console.log('PUT route hit for ID:', req.params.id);
   console.log('Has file:', !!req.file);
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
   
   try {
     const { title, projectName, category, style, layout, location, pricing, bhk, scope, propertyType, size, priceMin, priceMax, status } = req.body;
@@ -91,10 +93,11 @@ router.put('/:id', upload.single('image'), async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
     
-    console.log('Project updated successfully');
+    console.log('Project updated successfully:', JSON.stringify(project, null, 2));
     res.json(project);
   } catch (error) {
-    console.error('Error updating project:', error);
+    console.error('Error updating project:', error.message);
+    console.error('Error details:', JSON.stringify(error, null, 2));
     res.status(500).json({ error: error.message });
   }
 });

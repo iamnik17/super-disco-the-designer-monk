@@ -15,7 +15,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/designermonk')
   .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log('MongoDB Error:', err));
+  .catch(err => {
+    console.log('MongoDB Error:', err.message);
+    console.log('Error details:', JSON.stringify(err, null, 2));
+  });
 
 // Debug middleware to log all requests
 app.use((req, res, next) => {
