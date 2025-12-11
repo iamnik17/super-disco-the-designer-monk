@@ -18,14 +18,16 @@ const storage = new CloudinaryStorage({
     transformation: [
       { width: 1920, height: 1080, crop: 'limit' },
       { quality: 'auto:good' }
-    ]
+    ],
+    resource_type: 'image',
+    chunk_size: 6000000 // 6MB chunks for large files
   }
 });
 
 const upload = multer({ 
   storage: storage,
   limits: { 
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit (Cloudinary free tier)
     files: 1 // Only 1 file at a time
   },
   fileFilter: (req, file, cb) => {
@@ -61,7 +63,7 @@ const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ 
-        error: 'File too large. Maximum size is 50MB' 
+        error: 'File too large. Maximum size is 10MB' 
       });
     }
     if (err.code === 'LIMIT_FILE_COUNT') {
