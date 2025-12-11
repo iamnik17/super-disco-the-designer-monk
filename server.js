@@ -23,6 +23,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  res.status(500).json({ 
+    error: err.message || 'Internal server error',
+    success: false 
+  });
+});
+
 // Test route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working' });

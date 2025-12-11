@@ -41,9 +41,17 @@ router.post('/', upload.single('image'), async (req, res) => {
     });
 
     await project.save();
-    res.status(201).json(project);
+    res.status(201).json({
+      success: true,
+      message: 'Project created successfully',
+      project: project
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Project creation error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Failed to create project'
+    });
   }
 });
 
